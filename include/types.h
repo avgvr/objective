@@ -1,8 +1,7 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-#include <arch>
-
+#define __IAPC
 
 #define NULL 0
 

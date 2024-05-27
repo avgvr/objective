@@ -1,4 +1,4 @@
-#include <arch>
+#include <types.h>
 
 #if defined(__IAPC)
 #include "x86/PrimaryInit.h"
