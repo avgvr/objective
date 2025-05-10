@@ -3,6 +3,8 @@
 void SecondaryInitialization::processorInitialize()
 {
     PrimaryInitialization::processorInitialize();
+
+    Segments();
 };
 
 void SecondaryInitialization::devicesInitialize()
