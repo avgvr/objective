@@ -7,3 +7,4 @@ iso/os/*
 # LSP configuration files
 .clangd
 compile_flags.txt
+.ccls-cache
