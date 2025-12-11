@@ -2,7 +2,6 @@
 //         1) Implement msr write and save functions
 //         2) Ia32ApicBase field
 
-#include "../cpuinfo/Cpuinfo.h"
 #include <MemoryOperations.h>
 
 #ifndef MSR_H

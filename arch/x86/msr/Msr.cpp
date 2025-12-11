@@ -1,11 +1,14 @@
 #include "Msr.h"
+#include "../cpuid/Cpuid.h"
 
 Msr::Msr()
 {
-    Cpuinfo cpuinfo;
-    cpuinfo.cpuid(Cpuinfo::VersionInfo);
+    cpuid::VersionInfo vinfo;
+    cpuid::Executor executor;
 
-    msrSupport = cpuinfo.getRegs().edx & Cpuinfo::MSR;
+    executor.cpuid(vinfo);
+
+    msrSupport = vinfo.edx & cpuid::VersionInfo::EdxFlags::MSR;
 };
 
 bool Msr::rdmsr(MsrCommand *cmd)
@@ -50,18 +53,26 @@ bool Msr::wrmsr(MsrCommand *cmd)
 
 Ia32ApicBase::Ia32ApicBase()
 {
-    Cpuinfo cpuinfo;
-    bool cpuidAddrSzNotSupport = cpuinfo.cpuid(Cpuinfo::AddressSize);
-    cpuidOutputRegisters AddrSzRegs = cpuinfo.getRegs();
+    cpuid::Executor executor;
+    cpuid::VersionInfo verInfo;
+    cpuid::ExtendedAddressSize addrSize;
+    executor.cpuid(verInfo);
+    executor.cpuid(addrSize);
 
-    cpuinfo.cpuid(Cpuinfo::VersionInfo);
-    if(cpuinfo.getRegs().edx & Cpuinfo::PAE
-        and cpuidAddrSzNotSupport) maxPhyAddr = 36;
-    else if(cpuidAddrSzNotSupport) maxPhyAddr = 32;
-    else if(!cpuidAddrSzNotSupport) maxPhyAddr = (uint8)AddrSzRegs.edx;
-
-    bspFlag = enableFlag = false;
-    baseField = NULL;
+    if(verInfo.isValid
+        and verInfo.edx & cpuid::VersionInfo::EdxFlags::PAE
+        and !addrSize.isValid)
+    {
+        maxPhyAddr = 36;
+    }
+    else if(!addrSize.isValid)
+    {
+        maxPhyAddr = 32;
+    }
+    else if(addrSize.isValid)
+    {
+        maxPhyAddr = addrSize.eax.physicalAddressBits;
+    }
 };
 
 uint32 Ia32ApicBase::getCommand()
