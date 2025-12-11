@@ -207,10 +207,46 @@ public:
         SS = (1 << 27),
         HTT = (1 << 28),
         TM = (1 << 29),
-        PBE = (1 << 31),
+        PBE = static_cast<uint32>(1 << 31),
     };
 };
 
+inline uint32 operator&(uint32 r, VersionInfo::EdxFlags flag)
+{
+    return r & static_cast<uint32>(flag);
+};
+
+inline uint32 operator&(uint32 r, cpuid::VersionInfo::EcxFlags flag)
+{
+    return r & static_cast<uint32>(flag);
+};
+
+struct ExtendedAddressSize : public  CmdWithNoSubleaf
+{
+    constexpr static uint32 initialValue = 0x80000008;
+
+    ExtendedAddressSize() : CmdWithNoSubleaf(initialValue){};
+
+private:
+    struct AddressSize
+    {
+        uint8 physicalAddressBits,
+            linearAddressBits;
+    };
+
+public:
+    AddressSize eax;
+    bool isWbnoinvdAvailable;
+};
+
+struct ExtendedMaxInputValue : public CmdWithNoSubleaf
+{
+    constexpr static uint32 initialValue = 0x80000000;
+
+    ExtendedMaxInputValue() : CmdWithNoSubleaf(initialValue){};
+
+    uint32 eax;
+};
 
 /**
  * Getters are acquire information from cpuid instruction
@@ -221,6 +257,8 @@ public:
  */
 void acquireInformation(BasicInfo &cpuidRes);
 void acquireInformation(VersionInfo &cpuidRes);
+void acquireInformation(ExtendedAddressSize &cpuidRes);
+void acquireInformation(ExtendedMaxInputValue &cpuidRes);
 
 /**
  * Validators are check filling correctness for some cpuid command instance
