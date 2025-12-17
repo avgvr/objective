@@ -9,10 +9,12 @@ QEMUFLAGS =
 
 CFILES = $(shell find ./ -type f \( -name \*.cpp -o -name \*.c \))
 AFILES = $(shell find ./ -type f \( -iname \*.s -o -name \*.asm \))
-LDFILE = $(shell find ./ -type f -name *.ld)
+LDFILE = ./kernel/linker.ld
 SOURCE_FILES = $(CFILES) $(AFILES)
 OBJ_FILES = $(addprefix $(BDIR)/, $(addsuffix .o, $(basename $(SOURCE_FILES))))
 INCLUDE = ./include
+# Bad practice!
+ARCHDIR = arch/x86
 
 ifdef DEBUG
 	CFLAGS := -g3 $(CFLAGS)
@@ -29,7 +31,7 @@ build: startbuild $(SOURCE_FILES)
 	echo $(AFLAGS)
 	echo $(CFLAGS)
 	@echo "Link object files..."
-	$(LD) -o $(OS_BINARY) -T $(LDFILE) $(OBJ_FILES) $(LDFLAGS) 
+	$(LD) -o $(OS_BINARY) -L$(ARCHDIR) -T$(LDFILE) $(OBJ_FILES) $(LDFLAGS) 
 	@echo "Project was built"
 
 $(CFILES):

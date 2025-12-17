@@ -1,49 +1,77 @@
+INCLUDE memory.ld
+
 ENTRY(_start)
+
+/*Pass this symbols via CMake*/
+MAGIC = 0x1BADB002;
+FLAGS = 0;
+CHECKSUM = -(MAGIC + FLAGS);
 
 SECTIONS
 {
-    . = 1M;
-
-    .multiboot :
+    /* It's a raw solution. */
+    /* Automatic generation of filling .multiboot section needs. */
+    .multiboot ALIGN(START_ADDR, CONSTANT(MAXPAGESIZE)) : ALIGN(CONSTANT(MAXPAGESIZE))
     {
-        _startMultiboot = .;
-        *(.multiboot)
-        _endMultiboot = .;
-    }
+        LONG(MAGIC);
+        LONG(FLAGS);
+        LONG(CHECKSUM)
+    } > REGION_MULTIBOOT
 
-    .text BLOCK(4K) : ALIGN(4K)
+    .text ALIGN(CONSTANT(MAXPAGESIZE)) : ALIGN(CONSTANT(MAXPAGESIZE))
     {
-        _startText = .;
-        *(.text)
-        _endText = .;
-    }
+        _text = .;
+        *(.text*)
+        _etext = .;
+    } > REGION_TEXT
 
-    .rodata BLOCK(4K) : ALIGN(4k)
+    .rodata ALIGN(CONSTANT(MAXPAGESIZE)): ALIGN(CONSTANT(MAXPAGESIZE))
     {
-        _startRodata = .;
-        *(.rodata)
-        _endRodata = .;
-    }
+        _rodata = .;
+        *(.rodata*)
+        _erodata = .;
+    } > REGION_RODATA
 
-    .data BLOCK(4K) : ALIGN(4K)
+    .data :
     {
-        _startData = .;
+        _data = .;
         *(.data)
-        _endData = .;
-    }
+        _edata = .;
+    } > REGION_DATA
 
-    .bss BLOCK(16K) : ALIGN(16K)
+    .bss :
     {
-        _startBss = .;
+        _bss = .;
         *(.bss)
-        _endBss = .;
-    }
+        *(COMMON)
+        _ebss = .;
+    } > REGION_BSS
 
-    .kheap BLOCK(4k) : ALIGN(4k)
+    .stack ALIGN(CONSTANT(MAXPAGESIZE)) : ALIGN(CONSTANT(MAXPAGESIZE))
     {
-        _startKheap = .;
-        *(.kheap)
-        _endKheap = .;
-    }
+        _stack = ABSOLUTE(.);
+        . += 4 * CONSTANT(MAXPAGESIZE);
+        _estack = ABSOLUTE(.);
+    } > REGION_DATA
+
+    .kheap ALIGN(CONSTANT(MAXPAGESIZE)) : ALIGN(CONSTANT(MAXPAGESIZE))
+    {
+        _startKheap = ABSOLUTE(.);
+        . += CONSTANT(MAXPAGESIZE);
+        _endKheap = ABSOLUTE(.);
+    } > REGION_DATA
+
+    .eh_frame :
+    {
+        _eh_frame = .;
+        *(.eh_frame)
+        _e_eh_frame = .;
+    } > REGION_COMMON
+
+    .ctors :
+    {
+        SORT_BY_NAME(CONSTRUCTORS)
+    } > REGION_COMMON
+
 
 }
