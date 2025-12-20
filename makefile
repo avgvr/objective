@@ -25,13 +25,21 @@ endif
 OS_BINARY = $(BDIR)/kernel.bin
 BDIR = ./build
 
+BOOTOBJ = $(filter %boot.o, $(OBJ_FILES))
+CRTIOBJ = $(filter %crti.o, $(OBJ_FILES))
+CRTNOBJ = $(filter %crtn.o, $(OBJ_FILES))
+OBJ_REORDERING = $(filter-out $(BOOTOBJ), $(filter-out $(CRTIOBJ), $(filter-out $(CRTNOBJ), $(OBJ_FILES))))
+
+
 .PHONY: install $(SOURCE_FILES)
 
 build: startbuild $(SOURCE_FILES)
+	@echo "Bootfile: " $(BOOTOBJ) $(CRTIOBJ) $(CRTNOBJ)
+	@echo $(OBJ_FILES)
 	echo $(AFLAGS)
 	echo $(CFLAGS)
 	@echo "Link object files..."
-	$(LD) -o $(OS_BINARY) -L$(ARCHDIR) -T$(LDFILE) $(OBJ_FILES) $(LDFLAGS) 
+	$(LD) -o $(OS_BINARY) -L$(ARCHDIR) -T$(LDFILE) $(BOOTOBJ) $(CRTIOBJ) $(LIBS_PATH)crtbegin.o $(OBJ_REORDERING) $(LIBS_PATH)crtend.o $(CRTNOBJ) $(LDFLAGS) 
 	@echo "Project was built"
 
 $(CFILES):

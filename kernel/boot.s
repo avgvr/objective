@@ -1,11 +1,16 @@
 section .text
-extern main
-extern _estack
-global _start:function (_start.end - _start)
+extern main, _estack, _init
+global _start:function
 _start:
-            mov esp, _estack
+            ; Stack setup
+            mov eax, _estack
+            ; Align stack to odd address
+            and eax, 0xFFFFFFFE
+            mov esp, eax
+
+            call _init
             call main
             cli
 .hang:      hlt
             jmp .hang
-.end:
+; .end:
