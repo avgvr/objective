@@ -1,7 +1,7 @@
 #ifndef VGAINFOCLASS_H
 #define VGAINFOCLASS_H
 
-#include <types.h>
+#include <Types.h>
 
 #define TOBG(attr) attr << 4
 

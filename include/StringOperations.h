@@ -1,7 +1,7 @@
 #ifndef STRINGOPERATIONS_H
 #define STRINGOPERATIONS_H
 
-#include <types.h>
+#include <Types.h>
 
 
 class MemArea

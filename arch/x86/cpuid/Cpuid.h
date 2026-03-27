@@ -1,6 +1,6 @@
 #ifndef CPUID_H
 #define CPUID_H
-#include <types.h>
+#include <Types.h>
 #include <MemoryOperations.h>
 
 // To declare cpuid::Executor::Executor()

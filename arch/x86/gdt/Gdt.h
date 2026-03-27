@@ -1,7 +1,7 @@
 #ifndef GDT_H
 #define GDT_H
 
-#include <types.h>
+#include <Types.h>
 #include <MemoryOperations.h>
 
 

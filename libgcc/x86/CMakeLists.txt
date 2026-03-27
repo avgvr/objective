@@ -1,0 +1,15 @@
+add_library(CRTI INTERFACE)
+add_library(CRTIBUNDLE STATIC)
+target_sources(CRTIBUNDLE PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/crti.nasm
+    $<TARGET_OBJECTS:CRTBEGIN>
+)
+target_link_libraries(CRTI INTERFACE CRTIBUNDLE)
+
+add_library(CRTN INTERFACE)
+add_library(CRTNBUNDLE STATIC)
+target_sources(CRTNBUNDLE PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/crtn.nasm
+    $<TARGET_OBJECTS:CRTEND>
+)
+target_link_libraries(CRTN INTERFACE CRTNBUNDLE)

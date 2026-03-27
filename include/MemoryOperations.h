@@ -1,7 +1,7 @@
 #ifndef MEMORYOPERATIONS_H
 #define MEMORYOPERATIONS_H
 
-#include <types.h>
+#include <Types.h>
 
 
 class MemoryOperations
