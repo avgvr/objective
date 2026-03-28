@@ -1,3 +1,4 @@
+BITS 32
 global CPUIDCHK:function
 CPUIDCHK:
     push ebx
