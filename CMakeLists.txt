@@ -13,23 +13,6 @@ set(CXX_FLAGS
     -mgeneral-regs-only
 )
 
-#---DEV PROPERTIES--- (delete in production)
-# message(STATUS ${CMAKE_ASM_NASM_COMPILER})
-set(CMAKE_SYSTEM_NAME Generic)
-set(CMAKE_ASM_NASM_OBJECT_FORMAT elf32)
-set(CMAKE_CXX_COMPILER i686-elf-g++)
-set(CMAKE_CXX_COMPILER_WORKS 1)
-# set(CMAKE_CUSTOM_LINKER i686-elf-ld)
-# set(CMAKE_CXX_LINK_EXECUTABLE
-#     "ld <CMAKE_CXX_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
-# set(CMAKE_CXX_FLAGS "-I${CMAKE_CURRENT_LIST_DIR}/include")
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32 -Wall -ffreestanding -nostdinc -nostdlib -fno-rtti -mgeneral-regs-only")
-# message(STATUS ${CMAKE_ASM_NASM_FLAGS})
-# message(STATUS ${CMAKE_ASM_NASM_OBJECT_FORMAT})
-# message(STATUS ${CMAKE_CXX_LINK_EXECUTABLE})
-# message(STATUS ${CMAKE_CXX_LINK_FLAGS})
-#--------------------------------------------
-
 cmake_minimum_required(VERSION 3.25)
 
 project(ObjectiveProject LANGUAGES CXX ASM_NASM)
