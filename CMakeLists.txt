@@ -4,8 +4,13 @@
 # Expected input variables:
 #   ARCH: type of architecture 
 
-set(CXX_FLAGS
-    -Wall
+cmake_minimum_required(VERSION 3.25)
+
+project(ObjectiveProject LANGUAGES CXX ASM_NASM)
+
+set(ObjectiveProject_CXX_FLAGS
+    $<$<CONFIG:Debug>:-Wall -Wextra -ggdb -g3 -O0>
+    $<$<CONFIG:Release>:-Wall -Werror>
     -ffreestanding
     -nostdinc
     -nostdlib
@@ -13,9 +18,10 @@ set(CXX_FLAGS
     -mgeneral-regs-only
 )
 
-cmake_minimum_required(VERSION 3.25)
-
-project(ObjectiveProject LANGUAGES CXX ASM_NASM)
+set(ObjectiveProject_ASM_NASM_FLAGS
+    $<$<CONFIG:Debug>:-g -O0 -Wall>
+    $<$<CONFIG:RELEASE>:-Wall>
+)
 
 list(APPEND CMAKE_MODULE_PATH
     "${ObjectiveProject_SOURCE_DIR}/cmake/module"
@@ -36,11 +42,12 @@ endif()
 
 # Create target with compiler requirements (include directories, flags and etc)
 add_library(CXX_COMPILER_REQUIREMENTS INTERFACE)
+add_library(ASM_NASM_COMPILER_REQUIREMENTS INTERFACE)
 
 # Target with linker requirements
 add_library(CXX_LINKER_REQUIREMENTS INTERFACE)
 target_link_options(CXX_LINKER_REQUIREMENTS INTERFACE
-    ${CXX_FLAGS}
+    ${ObjectiveProject_CXX_FLAGS}
 )
 target_link_libraries(CXX_LINKER_REQUIREMENTS INTERFACE
     gcc
@@ -49,9 +56,13 @@ target_link_libraries(CXX_LINKER_REQUIREMENTS INTERFACE
 # Set compiler flags
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
     target_compile_options(CXX_COMPILER_REQUIREMENTS INTERFACE
-        ${CXX_FLAGS}
+        ${ObjectiveProject_CXX_FLAGS}
     )
 endif()
+
+target_compile_options(ASM_NASM_COMPILER_REQUIREMENTS INTERFACE
+    ${ObjectiveProject_ASM_NASM_FLAGS}
+)
 
 target_include_directories(CXX_COMPILER_REQUIREMENTS
     INTERFACE

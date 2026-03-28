@@ -1,3 +1,4 @@
+BITS 32
 section .text
 extern main, _estack, _init
 global _start:function
@@ -13,4 +14,3 @@ _start:
             cli
 .hang:      hlt
             jmp .hang
-; .end:

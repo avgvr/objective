@@ -22,4 +22,8 @@ target_sources(CPUIDASM PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/CpuidCheck.nasm
 )
 
+target_link_libraries(CPUIDASM PUBLIC
+    ASM_NASM_COMPILER_REQUIREMENTS
+)
+
 target_sources(ArchitectureAssemblerSources PRIVATE $<TARGET_OBJECTS:CPUIDASM>)

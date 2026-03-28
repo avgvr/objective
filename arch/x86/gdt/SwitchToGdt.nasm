@@ -1,4 +1,6 @@
-global SWITCHTOGDT
+BITS 32
+section .text
+global SWITCHTOGDT:function
 SWITCHTOGDT:
         lgdt [esp + 4]
         jmp 0x08:.reloadCS

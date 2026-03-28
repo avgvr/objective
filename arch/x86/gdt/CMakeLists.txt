@@ -20,4 +20,8 @@ target_sources(GDTASM PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/SwitchToGdt.nasm
 )
 
+target_link_libraries(GDTASM PUBLIC
+    ASM_NASM_COMPILER_REQUIREMENTS
+)
+
 target_sources(ArchitectureAssemblerSources PRIVATE $<TARGET_OBJECTS:GDTASM>)
