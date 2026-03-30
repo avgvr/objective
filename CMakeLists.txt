@@ -2,11 +2,19 @@
 # which include farther subprojects source codes
 
 # Expected input variables:
-#   ARCH: type of architecture 
+#   ObjectiveProject_ARCHITECTURE: type of architecture 
 
 cmake_minimum_required(VERSION 3.25)
 
+list(APPEND CMAKE_MESSAGE_CONTEXT ObjectiveProject)
 project(ObjectiveProject LANGUAGES CXX ASM_NASM)
+
+# Check on supported compiler
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+    message(STATUS "${CMAKE_CXX_COMPILER_ID} compiler is supported")
+else()
+    message(FATAL_ERROR "${CMAKE_CXX_COMPILER_ID} compiler isn't supported")
+endif()
 
 set(ObjectiveProject_CXX_FLAGS
     $<$<CONFIG:Debug>:-Wall -Wextra -ggdb -g3 -O0>
@@ -36,11 +44,19 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_executable(Objective)
 
 # Set architecture by default if not present
-if(NOT ARCH IN_LIST OBJECTIVE_SUPPORTED_PROCESSORS)
-    list(GET OBJECTIVE_SUPPORTED_PROCESSORS 0 ARCH)
+if(NOT ObjectiveProject_ARCHITECTURE IN_LIST OBJECTIVE_SUPPORTED_PROCESSORS)
+    if(ObjectiveProject_ARCHITECTURE STREQUAL "" OR NOT DEFINED ObjectiveProject_ARCHITECTURE)
+        message(FATAL_ERROR "Architecture isn't set")
+    else()
+        message(FATAL_ERROR "${ObjectiveProject_ARCHITECTURE} - unknown architecture")
+    endif()
+    list(GET OBJECTIVE_SUPPORTED_PROCESSORS 0 ObjectiveProject_ARCHITECTURE)
+    message(STATUS "Set up architecture by default - ${ObjectiveProject_ARCHITECTURE}")
+else()
+    message(STATUS "${ObjectiveProject_ARCHITECTURE} - choosed architecture")
 endif()
 
-# Create target with compiler requirements (include directories, flags and etc)
+# Create targets with compilers requirements (include directories, flags and etc)
 add_library(CXX_COMPILER_REQUIREMENTS INTERFACE)
 add_library(ASM_NASM_COMPILER_REQUIREMENTS INTERFACE)
 
@@ -53,13 +69,12 @@ target_link_libraries(CXX_LINKER_REQUIREMENTS INTERFACE
     gcc
 )
 
-# Set compiler flags
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
-    target_compile_options(CXX_COMPILER_REQUIREMENTS INTERFACE
-        ${ObjectiveProject_CXX_FLAGS}
-    )
-endif()
+# Set cxx compiler flags
+target_compile_options(CXX_COMPILER_REQUIREMENTS INTERFACE
+    ${ObjectiveProject_CXX_FLAGS}
+)
 
+# Set nasm compiler flags
 target_compile_options(ASM_NASM_COMPILER_REQUIREMENTS INTERFACE
     ${ObjectiveProject_ASM_NASM_FLAGS}
 )
@@ -69,7 +84,7 @@ target_include_directories(CXX_COMPILER_REQUIREMENTS
         ${ObjectiveProject_SOURCE_DIR}/include
 )
 
-# Subscribe compiler requirements to Object executable
+# Subscribe compiler requirements to Objective executable
 target_link_libraries(Objective PUBLIC CXX_COMPILER_REQUIREMENTS)
 
 add_subdirectory(arch)
@@ -90,4 +105,20 @@ target_link_libraries(Objective PRIVATE
     CRTN
 )
 
+# Set cxx linker options
 target_link_libraries(Objective PRIVATE CXX_LINKER_REQUIREMENTS)
+
+# Targets to show output of generator expression
+add_custom_target(options
+    COMMENT "Toolset passed options"
+    COMMAND ${CMAKE_COMMAND} -E echo
+    "CXX compiler options: "
+    "$<JOIN:$<TARGET_PROPERTY:CXX_COMPILER_REQUIREMENTS,INTERFACE_COMPILE_OPTIONS>, >"
+    COMMAND ${CMAKE_COMMAND} -E echo
+    "NASM compiler options: "
+    "$<JOIN:$<TARGET_PROPERTY:ASM_NASM_COMPILER_REQUIREMENTS,INTERFACE_COMPILE_OPTIONS>, >"
+    COMMAND ${CMAKE_COMMAND} -E echo
+    "Linker options: "
+    "$<JOIN:$<TARGET_PROPERTY:CXX_LINKER_REQUIREMENTS,INTERFACE_LINK_OPTIONS>, >"
+    VERBATIM
+)

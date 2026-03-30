@@ -14,4 +14,4 @@ target_sources(Initialization
             ${CMAKE_CURRENT_LIST_DIR}/SecondaryInit.h
 )
 
-add_subdirectory(${ARCH})
+add_subdirectory(${ObjectiveProject_ARCHITECTURE})

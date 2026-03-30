@@ -1,3 +1,6 @@
+list(APPEND CMAKE_MESSAGE_CONTEXT libgcc)
+message(STATUS "Searching CRT objects")
+
 macro(setup_crt_object_file object_file target_name)
     execute_process(
         COMMAND ${CMAKE_CXX_COMPILER} --print-file-name=${object_file}
@@ -11,6 +14,7 @@ macro(setup_crt_object_file object_file target_name)
         message(FATAL_ERROR ${ERROR_MESSAGE})
     endif()
 
+    message(STATUS "${object_file} was found at the ${PATH} path")
     add_library(${target_name} OBJECT IMPORTED GLOBAL)
     set_target_properties(${target_name} PROPERTIES
         IMPORTED_OBJECTS ${PATH}
@@ -22,4 +26,5 @@ endmacro()
 setup_crt_object_file(crtbegin.o CRTBEGIN)
 setup_crt_object_file(crtend.o CRTEND)
 
-add_subdirectory(${ARCH})
+message(STATUS "The CRT objects were found")
+add_subdirectory(${ObjectiveProject_ARCHITECTURE})
