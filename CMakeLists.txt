@@ -2,7 +2,7 @@
 # which include farther subprojects source codes
 
 # Expected input variables:
-#   ObjectiveProject_ARCHITECTURE: type of architecture 
+#   ObjectiveProject_ARCHITECTURE: type of architecture
 
 cmake_minimum_required(VERSION 3.25)
 
@@ -10,11 +10,16 @@ list(APPEND CMAKE_MESSAGE_CONTEXT ObjectiveProject)
 project(ObjectiveProject LANGUAGES CXX ASM_NASM)
 
 # Check on supported compiler
+message(CHECK_START "Checking compiler support")
+list(APPEND CMAKE_MESSAGE_INDENT "   ")
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
-    message(STATUS "${CMAKE_CXX_COMPILER_ID} compiler is supported")
+    message(CHECK_PASS "Found")
+    message(STATUS "${CMAKE_CXX_COMPILER_ID} found compiler")
 else()
-    message(FATAL_ERROR "${CMAKE_CXX_COMPILER_ID} compiler isn't supported")
+    message(CHECK_PASS "Not Found")
+    message(STATUS "${CMAKE_CXX_COMPILER_ID} compiler isn't supported")
 endif()
+list(POP_BACK CMAKE_MESSAGE_INDENT)
 
 set(ObjectiveProject_CXX_FLAGS
     $<$<CONFIG:Debug>:-Wall -Wextra -ggdb -g3 -O0>
@@ -44,17 +49,21 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_executable(Objective)
 
 # Set architecture by default if not present
+message(CHECK_START "Checking architecture support")
+list(APPEND CMAKE_MESSAGE_INDENT "   ")
 if(NOT ObjectiveProject_ARCHITECTURE IN_LIST OBJECTIVE_SUPPORTED_PROCESSORS)
     if(ObjectiveProject_ARCHITECTURE STREQUAL "" OR NOT DEFINED ObjectiveProject_ARCHITECTURE)
+        message(CHECK_FAIL "not set")
         message(FATAL_ERROR "Architecture isn't set")
     else()
+        message(CHECK_FAIL "unknown")
         message(FATAL_ERROR "${ObjectiveProject_ARCHITECTURE} - unknown architecture")
     endif()
-    list(GET OBJECTIVE_SUPPORTED_PROCESSORS 0 ObjectiveProject_ARCHITECTURE)
-    message(STATUS "Set up architecture by default - ${ObjectiveProject_ARCHITECTURE}")
 else()
-    message(STATUS "${ObjectiveProject_ARCHITECTURE} - choosed architecture")
+    message(CHECK_FAIL "ok")
+    message(STATUS "${ObjectiveProject_ARCHITECTURE} - chosen architecture")
 endif()
+list(POP_BACK CMAKE_MESSAGE_INDENT)
 
 # Create targets with compilers requirements (include directories, flags and etc)
 add_library(CXX_COMPILER_REQUIREMENTS INTERFACE)
