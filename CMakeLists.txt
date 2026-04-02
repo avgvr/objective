@@ -107,11 +107,13 @@ target_sources(Objective PRIVATE
 )
 
 target_link_libraries(Objective PRIVATE
-    CRTI
+    $<TARGET_OBJECTS:CRTI>
+    $<TARGET_OBJECTS:CRTBEGIN>
     Architecture
     Kernel
     Drivers
-    CRTN
+    $<TARGET_OBJECTS:CRTEND>
+    $<TARGET_OBJECTS:CRTN>
 )
 
 # Set cxx linker options

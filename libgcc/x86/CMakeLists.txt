@@ -1,21 +1,20 @@
-add_library(CRTI INTERFACE)
-add_library(CRTIBUNDLE STATIC)
-target_sources(CRTIBUNDLE PRIVATE
-    ${CMAKE_CURRENT_LIST_DIR}/crti.nasm
-    $<TARGET_OBJECTS:CRTBEGIN>
+add_library(CRTI OBJECT)
+target_sources(CRTI PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/crti.nasm
 )
-target_link_libraries(CRTIBUNDLE PUBLIC
-    ASM_NASM_COMPILER_REQUIREMENTS 
-)
-target_link_libraries(CRTI INTERFACE CRTIBUNDLE)
 
-add_library(CRTN INTERFACE)
-add_library(CRTNBUNDLE STATIC)
-target_sources(CRTNBUNDLE PRIVATE
+target_link_libraries(CRTI
+    PUBLIC
+        ASM_NASM_COMPILER_REQUIREMENTS 
+)
+
+add_library(CRTN OBJECT)
+target_sources(CRTN PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/crtn.nasm
-    $<TARGET_OBJECTS:CRTEND>
 )
-target_link_libraries(CRTNBUNDLE PUBLIC
-    ASM_NASM_COMPILER_REQUIREMENTS
+
+target_link_libraries(CRTN
+    PUBLIC
+        ASM_NASM_COMPILER_REQUIREMENTS
+
 )
-target_link_libraries(CRTN INTERFACE CRTNBUNDLE)
