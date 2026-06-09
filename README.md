@@ -5,6 +5,7 @@
 - [Description](#Description)
 - [Build](#Build)
 - [Contributing](#Contributing)
+- [License](#license)
 - [Community](#Community)
 - [Links](#Links)
 
@@ -37,6 +38,9 @@ options for kernel configuration.
 ## Contributing
 Ways and terms to participant in project development described in [CONTRIBUTING.md](CONTRIBUTING.md)
 file
+
+## License
+This project is licensed under the GPLv3 License - see the [LICENSE](LICENSE) file for details.
 
 ## Community
 [Discussions mailing list](https://groups.io/g/objective-project-discussions)
