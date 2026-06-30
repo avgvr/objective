@@ -1,19 +1,18 @@
 #[[
- * Copyright (c) 2026 Alexey Gavrilov <alexey.gavrilov@mail.com>
- *
- * This file is part of ObjectiveOS.
- *
- * ObjectiveOS is free software: you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any later
- * version.
- *
- * ObjectiveOS is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * ObjectiveOS. If not, see <https://www.gnu.org/licenses/>.
+ # Copyright (c) 2026 Alexey Gavrilov <alexey.gavrilov@mail.com>
+ #
+ # This file is part of ObjectiveOS.
+ #
+ # ObjectiveOS is free software: you can redistribute it and/or modify it under
+ # the terms of the GNU General Public License as published by the Free Software
+ # Foundation, either version 3 of the License, or (at your option) any later
+ # version.
+ #
+ # ObjectiveOS is distributed in the hope that it will be useful, but WITHOUT ANY
+ # WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ #
+ # You should have received a copy of the GNU General Public License along with
+ # ObjectiveOS. If not, see <https://www.gnu.org/licenses/>.
  ]]
 
 get_property(IS_INITIALZIED GLOBAL PROPERTY POPULATING_FEATURES SET)
@@ -23,6 +22,12 @@ if(NOT IS_INITIALZIED)
     set_property(GLOBAL PROPERTY FEATURES_LIST "")
     # Features list that cannot to finish the save process
     set_property(GLOBAL PROPERTY CONSERVED_FEATURES "")
+
+    # Name of out file
+    set(FEATURE_OUT_FILE "CMakeFeatureOut.txt" CACHE STRING "Features data
+    out filename")
+    set(FEATURE_AVAILABLE_FIELDS "NAME;DESCRIPTION;TAGS;HASHCOMMIT;AUTHORSHIP"
+    CACHE STRING "Available feature fields")
 endif()
 
 function(startFeatureRecording target)
@@ -54,7 +59,7 @@ function(saveRecordingFeature)
     get_property(
         CONSERVED_FEATURES_PROPERTY GLOBAL PROPERTY
             CONSERVED_FEATURES)
-    list(LENGTH POPULATING_FEATURES POPULATING_FEATURES_LENGTH)
+    list(LENGTH POPULATING_FEATURES_PROPERTY POPULATING_FEATURES_LENGTH)
 
     # Divided save feature on three category: nothing to save, cannot to finish
     # and can finish
@@ -107,8 +112,6 @@ endfunction()
  # NAME and HASHCOMMIT must be specified.
  ]]
 function(setFeatureField field value)
-    set(AVAILABLE_FIELDS "NAME;DESCRIPTION;TAGS;HASHCOMMIT;AUTHORSHIP")
-
     get_property(
         POPULATING_FEATURES_PROPERTY
         GLOBAL PROPERTY
@@ -120,7 +123,7 @@ function(setFeatureField field value)
     if(RECORDING_FEATURE)
         # If field is available and value is define, save target property with
         # associated value
-        if(field IN_LIST AVAILABLE_FIELDS AND value)
+        if(field IN_LIST FEATURE_AVAILABLE_FIELDS AND value)
             set_property(
                 TARGET ${RECORDING_FEATURE}
                 PROPERTY
@@ -133,7 +136,7 @@ function(setFeatureField field value)
 endfunction()
 
 #[[
-# Element in names must be an architecture, compiler or another feature. Would be a list.
+ # Element in names must be an architecture, compiler or another feature. Would be a list.
  ]]
 function(setFeatureDependency names)
     get_property( POPULATING_FEATURES_PROPERTY GLOBAL PROPERTY POPULATING_FEATURES)
@@ -164,4 +167,34 @@ function(setFeatureDependency names)
     else()
         message(WARNING "No recording feature")
     endif()
+endfunction()
+
+#[[
+ # Function that push features data into file. Content is like cmake variables.
+ # <FEATURE_PROPERTY> = "<VARIABLE>"
+ ]]
+function(outFeaturesToFile)
+    get_property(FEATURES_LIST GLOBAL PROPERTY FEATURES_LIST)
+
+    set(OUT_FILE "${CMAKE_BINARY_DIR}/${FEATURE_OUT_FILE}")
+    file(WRITE "${OUT_FILE}"
+        "# This file contains list of kernel configurable objects\n\n")
+
+    foreach(feature IN LISTS FEATURES_LIST)
+        get_property(FEATURE_DEPENDENCIES TARGET ${feature} PROPERTY
+        FEATURE_DEPENDENCIES)
+
+        file(APPEND "${OUT_FILE}" "# Properties for ${feature} feature\n")
+
+        foreach(FIELD_NAME IN LISTS FEATURE_AVAILABLE_FIELDS)
+            get_property("FEATURE_${FIELD_NAME}" TARGET ${feature} PROPERTY
+                "FEATURE_${FIELD_NAME}")
+
+            file(APPEND "${OUT_FILE}"
+                "FEATURE_${feature}_${FIELD_NAME} = \"${FEATURE_${FIELD_NAME}}\"\n")
+        endforeach()
+
+        file(APPEND "${OUT_FILE}"
+            "FEATURE_${feature}_${FIELD_NAME} = \"${FEATURE_DEPENDENCIES}\"\n\n\n")
+    endforeach()
 endfunction()
