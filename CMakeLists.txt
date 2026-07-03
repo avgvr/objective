@@ -58,7 +58,9 @@ list(APPEND CMAKE_MODULE_PATH
     "${ObjectiveProject_SOURCE_DIR}/cmake/module"
 )
 
+include(feature)
 include(metadata)
+include(runfile)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -137,17 +139,5 @@ target_link_libraries(Objective PRIVATE
 # Set cxx linker options
 target_link_libraries(Objective PRIVATE CXX_LINKER_REQUIREMENTS)
 
-# Targets to show output of generator expression
-add_custom_target(options
-    COMMENT "Toolset passed options"
-    COMMAND ${CMAKE_COMMAND} -E echo
-    "CXX compiler options: "
-    "$<JOIN:$<TARGET_PROPERTY:CXX_COMPILER_REQUIREMENTS,INTERFACE_COMPILE_OPTIONS>, >"
-    COMMAND ${CMAKE_COMMAND} -E echo
-    "NASM compiler options: "
-    "$<JOIN:$<TARGET_PROPERTY:ASM_NASM_COMPILER_REQUIREMENTS,INTERFACE_COMPILE_OPTIONS>, >"
-    COMMAND ${CMAKE_COMMAND} -E echo
-    "Linker options: "
-    "$<JOIN:$<TARGET_PROPERTY:CXX_LINKER_REQUIREMENTS,INTERFACE_LINK_OPTIONS>, >"
-    VERBATIM
-)
+outFeaturesToFile()
+writerunfile()

@@ -24,25 +24,25 @@ macro(parseFeatures vars outfile)
 endmacro()
 
 macro(parseToolset vars outfile)
+    convertCacheVarIntoArg(CMAKE_BUILD_TYPE ${vars} ${outfile})
     if("CMAKE_TOOLCHAIN_FILE" IN_LIST ${vars} AND NOT ${CMAKE_TOOLCHAIN_FILE})
         cmake_path(GET CMAKE_TOOLCHAIN_FILE FILENAME TOOLCHAIN_FILE_NAME)
         file(APPEND ${${outfile}}
             " -DCMAKE_TOOLCHAIN_FILE="
             "${ObjectiveProject_SOURCE_DIR}/cmake/toolchain/${TOOLCHAIN_FILE_NAME}")
     else()
-        # If toolchain file isn't specifies, there are three things to pass
-        # in cmake: architecture, c++ compiler and build type
+        # If toolchain file isn't specifies, there are two things to pass
+        # in cmake: architecture and c++ compiler
         convertCacheVarIntoArg(ObjectiveProject_ARCHITECTURE ${vars} ${outfile})
         cmake_path(GET CMAKE_CXX_COMPILER FILENAME COMPILER_EXECUTABLE)
         if(NOT "${COMPILER_EXECUTABLE}" STREQUAL "")
             file(APPEND ${${outfile}}
                 " -DCMAKE_CXX_COMPILER=${COMPILER_EXECUTABLE}")
         endif()
-        convertCacheVarIntoArg(CMAKE_BUILD_TYPE ${vars} ${outfile})
     endif()
 endmacro()
 
-function(confwrite)
+function(writerunfile)
     set(OUT_FILE "${CMAKE_BINARY_DIR}/${CONFFILE_NAME}")
 
     get_directory_property(cacheVars CACHE_VARIABLES)

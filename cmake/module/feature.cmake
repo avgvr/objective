@@ -174,12 +174,29 @@ endfunction()
  # <FEATURE_PROPERTY> = "<VARIABLE>"
  ]]
 function(outFeaturesToFile)
+    get_directory_property(cacheVars CACHE_VARIABLES)
     get_property(FEATURES_LIST GLOBAL PROPERTY FEATURES_LIST)
 
     set(OUT_FILE "${CMAKE_BINARY_DIR}/${FEATURE_OUT_FILE}")
     file(WRITE "${OUT_FILE}"
         "# This file contains list of kernel configurable objects\n\n")
 
+    file(APPEND "${OUT_FILE}" "# Toolset variables\n")
+    if("CMAKE_TOOLCHAIN_FILE" IN_LIST cacheVars
+            AND NOT "${CMAKE_TOOLCHAIN_FILE}" STREQUAL "")
+        cmake_path(GET CMAKE_TOOLCHAIN_FILE FILENAME TOOLCHAIN_FILE_NAME)
+        file(APPEND "${OUT_FILE}"
+            " -DCMAKE_TOOLCHAIN_FILE="
+            "${ObjectiveProject_SOURCE_DIR}/cmake/toolchain/${TOOLCHAIN_FILE_NAME}")
+    else()
+        cmake_path(GET CMAKE_CXX_COMPILER FILENAME CXX_COMPILER_EXECUTABLE)
+        file(APPEND "${OUT_FILE}"
+            "CMAKE_CXX_COMPILER = \"${CXX_COMPILER_EXECUTABLE}\"\n")
+        file(APPEND "${OUT_FILE}"
+            "ObjectiveProject_ARCHITECTURE = "
+            "\"${ObjectiveProject_ARCHITECTURE}\"\n")
+    endif()
+    file(APPEND "${OUT_FILE}" "\n\n")
     foreach(feature IN LISTS FEATURES_LIST)
         get_property(FEATURE_DEPENDENCIES TARGET ${feature} PROPERTY
         FEATURE_DEPENDENCIES)
@@ -194,7 +211,16 @@ function(outFeaturesToFile)
                 "FEATURE_${feature}_${FIELD_NAME} = \"${FEATURE_${FIELD_NAME}}\"\n")
         endforeach()
 
+        # Check if feature is enable, and push them to file
+        if("FEATURE_${feature}" IN_LIST cacheVars
+                AND NOT "${FEATURE_${feature}}" STREQUAL "")
+            file(APPEND "${OUT_FILE}"
+                "FEATURE_${feature}_IS_ENABLING = "
+                "\"TRUE\"\n")
+        endif()
+
         file(APPEND "${OUT_FILE}"
-            "FEATURE_${feature}_${FIELD_NAME} = \"${FEATURE_DEPENDENCIES}\"\n\n\n")
+            "FEATURE_${feature}_DEPENDENCIES = \"${FEATURE_DEPENDENCIES}\"\n\n\n")
+
     endforeach()
 endfunction()
