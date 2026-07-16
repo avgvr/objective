@@ -240,7 +240,7 @@ createFeatureModuleFunction("outFeaturesToFile" ""
         endforeach()
 
         # Check if feature is enable, and push them to file
-        if("FEATURE_\${feature}" IN_LIST cacheVars AND NOT "\${FEATURE_\${feature}}" STREQUAL "")
+        if("FEATURE_\${feature}" IN_LIST cacheVars AND DEFINED "\${FEATURE_\${feature}}")
             file(APPEND "\${OUT_FILE}" "FEATURE_\${feature}_IS_ENABLING = " "\\"TRUE\\"\n")
         endif()
 
