@@ -52,6 +52,7 @@ createFeatureModuleFunction("featureModuleInitialization" ""
     CACHE STRING "Available feature fields")]]
 )
 
+# Run variable initialization if module is work.
 featureModuleInitialization()
 
 createFeatureModuleFunction("startFeatureRecording" "target"
@@ -60,11 +61,24 @@ createFeatureModuleFunction("startFeatureRecording" "target"
         GLOBAL PROPERTY
             POPULATING_FEATURES
     )
+    get_property(
+        FEATURES_LIST_PROPERTY
+        GLOBAL PROPERTY
+            FEATURES_LIST
+    )
+
+    # Process duplicating features. Error, if it is exists.
+    if(
+        target IN_LIST FEATURES_LIST_PROPERTY
+        OR target IN_LIST POPULATING_FEATURES_PROPERTY
+    )
+        message(SEND_ERROR "\\"\${target}\\" feature is duplicate")
+    endif()
 
     if(TARGET \${target})
         list(APPEND POPULATING_FEATURES_PROPERTY \${target})
     else()
-        message(WARNING "\${target} isn't a target")
+        message(SEND_ERROR "\${target} isn't a target. Feature doesn't created.")
     endif()
 
     set_property(
