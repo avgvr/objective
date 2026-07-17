@@ -28,7 +28,7 @@ set(warnhandle ${FEATURES_SUSPEND})
 # suspend.
 
 macro(createFeatureModuleFunction name args bodyfunc)
-    if(DEFINED FEATURES_SUSPEND)
+    if(FEATURES_SUSPEND)
         function(${name} ${args})
             message(WARNING "Feature module suspend")
         endfunction()
@@ -87,7 +87,7 @@ createFeatureModuleFunction("startFeatureRecording" "target"
     )]]
 )
 
-createFeatureModuleFunction("saveRecordinfFunction" ""
+createFeatureModuleFunction("saveFeatureRecording" ""
 [[    get_property(
         POPULATING_FEATURES_PROPERTY GLOBAL PROPERTY
             POPULATING_FEATURES)
@@ -178,25 +178,39 @@ createFeatureModuleFunction("setFeatureField" "field;value"
  ]]
 createFeatureModuleFunction("setFeatureDependency" "names"
 [[    get_property( POPULATING_FEATURES_PROPERTY GLOBAL PROPERTY POPULATING_FEATURES)
+    get_property( CONSERVED_FEATURES_PROPERTY GLOBAL PROPERTY CONSERVED_FEATURES)
     list(POP_BACK POPULATING_FEATURES_PROPERTY RECORDING_FEATURE)
-    list(GET -1 POPULATING_FEATURES_PROPERTY FEATURE_DEP_INHERIT)
 
     get_property(FEATURES_LIST_PROPERTY GLOBAL PROPERTY FEATURES_LIST)
 
     if(RECORDING_FEATURE)
-        set(featdep "")
+        get_property(availableTargetFeatures TARGET \${RECORDING_FEATURE}
+            PROPERTY FEATURE_DEPENDENCIES)
+
+        set(featdep "\${availableTargetFeatures}")
 
         foreach(dependency IN LISTS names)
             if(
-                (dependency IN_LIST FEATURES_LIST_PROPERTY
-                OR dependency IN_LIST POPULATING_FEATURES_PROPERTY
-                AND NOT dependency STREQUAL \${RECORDING_FEATURE})
-                OR (dependency IN_LIST OBJECTIVE_SUPPORTED_PROCESSORS)
-                OR (dependency MATCHES "gcc" OR dependency MATCHES "clang")
+                NOT dependency STREQUAL "\${RECORDING_FEATURE}"
+                AND NOT dependency IN_LIST availableTargetFeatures
             )
-                list(APPEND featdep \${dependency})
+                if(
+                    (TARGET "\${dependency}" AND
+                        (dependency IN_LIST FEATURES_LIST_PROPERTY
+                        OR dependency IN_LIST CONSERVED_FEATURES_PROPERTY))
+                    OR dependency IN_LIST OBJECTIVE_SUPPORTED_PROCESSORS
+                )
+                    list(APPEND featdep \${dependency})
+                elseif(
+                    NOT TARGET "\${dependency}"
+                    AND NOT dependency IN_LIST OBJECTIVE_SUPPORTED_PROCESSORЅ
+                )
+                    list(APPEND featdep \${dependency})
+                else()
+                    message(WARNING "\\"\${dependency}\\" is wrong target or architecture")
+                endif()
             else()
-                message(WARNING "\\"\${dependency}\\" is wrong")
+                message(WARNING "\\"\${dependency}\\" is duplicate or refer to itself")
             endif()
         endforeach()
         set_property(TARGET \${RECORDING_FEATURE} PROPERTY FEATURE_DEPENDENCIES
@@ -246,5 +260,47 @@ createFeatureModuleFunction("outFeaturesToFile" ""
 
         file(APPEND "\${OUT_FILE}" "FEATURE_\${feature}_DEPENDENCIES = \\"\${FEATURE_DEPENDENCIES}\\"\n\n\n")
 
+    endforeach()]]
+)
+
+createFeatureModuleFunction("bindFeaturesToBuild" ""
+[[    get_directory_property(cacheVars CACHE_VARIABLES)
+
+    # Get current enumeration of features
+    list(FILTER cacheVars INCLUDE REGEX "FEATURE_[A-Za-z0-9\.]+\$")
+
+    foreach(feature IN LISTS cacheVars)
+        string(REGEX REPLACE "^FEATURE_" "" feature "\${feature}")
+        get_target_property(dependencies \${feature} FEATURE_DEPENDENCIES)
+        set(dependenciesTarget "")
+        foreach(elm IN LISTS dependencies)
+            if(TARGET "\${elm}")
+                list(APPEND dependenciesTarget "\${elm}")
+            endif()
+        endforeach()
+        list(REMOVE_ITEM dependencies "\${dependenciesTarget}")
+
+        # Intersection by architecture and dependencies lists
+        set(differenceList "\${OBJECTIVE_SUPPORTED_PROCESSORS}")
+        list(REMOVE_ITEM differenceList \${dependencies})
+        set(dependenciesArch "\${OBJECTIVE_SUPPORTED_PROCESSORS}")
+        list(REMOVE_ITEM dependenciesArch \${differenceList})
+        set(dependenciesCompiler "\${dependencies}")
+        list(REMOVE_ITEM dependenciesCompiler \${dependenciesArch})
+
+        cmake_path(GET CMAKE_CXX_COMPILER FILENAME COMPILER_NAME)
+        if(
+            (NOT dependenciesArch STREQUAL ""
+                AND NOT ObjectiveProject_ARCHITECTURE IN_LIST dependenciesArch)
+            OR (NOT dependenciesCompiler STREQUAL ""
+                AND NOT COMPILER_NAME IN_LIST dependenciesCompiler)
+        )
+            message(SEND_ERROR "Toolset doesn't matches with feature \${feature}\n"
+                    "TOOLSET: architecture - \${ObjectiveProject_ARCHITECTURE}, "
+                    "compiler - \${COMPILER_NAME}\n"
+                    "FEATURE \${feature} DEPENDENCIES: "
+                    "architectures - \${dependenciesArch}, "
+                    "compilers - \${dependenciesCompiler}")
+        endif()
     endforeach()]]
 )
