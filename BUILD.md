@@ -45,13 +45,26 @@
     It is reccommended to build grub from source configured target as chose
 architecture.
 
-    To build grub from source refer to the [documentation](https://www.gnu.org/software/grub/manual/grub/html_node/Obtaining-and-Building-GRUB.html)
+    To build grub from source refer to the
+    [documentation](https://www.gnu.org/software/grub/manual/grub/html_node/Obtaining-and-Building-GRUB.html)
 
 ## Kernel configuration
-You can configure kernel using cmake -D option. All cmake options build-in are supported
+You can configure kernel using cmake -D<var>:<type>=<value> option. All cmake build-in options are supported.
 
 ### Options
-Not yet available options
+#### Objective project relative options
+
+**IS_BIND_FEATURES_TO_BUILD**:BOOL
+
+    Check run matches features dependencies with the objective project toolset
+    (it is a compiler and architecture).
+
+#### Features module relative options
+
+**FEATURES_SUSPEND**:BOOL
+
+    All cmake feature module functions are suppress and print the warning about
+    it is suspend.
 
 ## Build instructions
 

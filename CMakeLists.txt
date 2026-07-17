@@ -122,6 +122,10 @@ add_subdirectory(drivers)
 add_subdirectory(include)
 add_subdirectory(libgcc)
 
+if(IS_BIND_FEATURES_TO_BUILD)
+    bindFeaturesToBuild()
+endif()
+
 target_sources(Objective PRIVATE
     $<TARGET_OBJECTS:Boot>
 )
