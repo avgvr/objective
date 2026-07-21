@@ -20,12 +20,14 @@ include_guard(GLOBAL)
 # Used to suppress a warning: "variable were not used by the project"
 set(warnhandle ${FEATURES_SUSPEND})
 
-# Create a blank function when this module needs to suppress.
-# name - name of creating function.
-# args - names arguments of creating function. Arguments are list if they count
-# bigger than one. For instance, "first;second;third".
-# bodyfunc - body of the function instead of blank body if module doesn't
-# suspend.
+#[[
+ # Create a blank function when this module needs to suppress.
+ # name - name of creating function.
+ # args - names arguments of creating function. Arguments are list if they count
+ # bigger than one. For instance, "first;second;third".
+ # bodyfunc - body of the function instead of blank body if module doesn't
+ # suspend.
+ ]]
 
 macro(createFeatureModuleFunction name args bodyfunc)
     if(FEATURES_SUSPEND)
@@ -38,6 +40,23 @@ macro(createFeatureModuleFunction name args bodyfunc)
         endfunction()
     endif()
 endmacro()
+
+#[[
+ # !IMPORTANT! Call before any other function execution and only one time.
+ # !IMPORTANT! Incorrect use of this function cause undefined behaviour.
+ # Filling cache variables related project information.
+ ]]
+createFeatureModuleFunction("featureProjectDataAssign"
+    "available_archs;project_root_dir;project_arch;toolchain_dir"
+[[    set(FEATURE_PROJECT_AVAILABLE_ARCHS \${\${available_archs}} CACHE STRING
+        "List of available architectures by project")
+    set(FEATURE_PROJECT_ROOT_DIR \${\${project_root_dir}} CACHE STRING
+        "Root directory of project")
+    set(FEATURE_PROJECT_ARCH \${\${projcet_arch}} CACHE STRING
+        "Current project architecture")
+    set(FEATURE_TOOLCHAIN_DIR \${\${toolchain_dir}} CACHE STRING
+        "Toolchain directory relates project root dir")]]
+)
 
 createFeatureModuleFunction("featureModuleInitialization" ""
 [[  set_property(GLOBAL PROPERTY POPULATING_FEATURES "")
@@ -202,7 +221,7 @@ createFeatureModuleFunction("setFeatureDependency" "names"
                     (TARGET "\${dependency}" AND
                         (dependency IN_LIST FEATURES_LIST_PROPERTY
                         OR dependency IN_LIST CONSERVED_FEATURES_PROPERTY))
-                    OR dependency IN_LIST OBJECTIVE_SUPPORTED_PROCESSORS
+                    OR dependency IN_LIST FEATURE_AVAILABLE_ARCHS
                 )
                     list(APPEND featdep \${dependency})
                 # Not Target and not architecture treat as compiler,
@@ -241,7 +260,8 @@ createFeatureModuleFunction("outFeaturesToFile" ""
     file(APPEND "\${OUT_FILE}" "# Toolset variables\n")
     if("CMAKE_TOOLCHAIN_FILE" IN_LIST cacheVars AND NOT "\${CMAKE_TOOLCHAIN_FILE}" STREQUAL "")
         cmake_path(GET CMAKE_TOOLCHAIN_FILE FILENAME TOOLCHAIN_FILE_NAME)
-        file(APPEND "\${OUT_FILE}" " -DCMAKE_TOOLCHAIN_FILE=" "\${ObjectiveProject_SOURCE_DIR}/cmake/toolchain/\${TOOLCHAIN_FILE_NAME}")
+        file(APPEND "\${OUT_FILE}" " -DCMAKE_TOOLCHAIN_FILE="
+        "\${FEATURE_PROJECT_ROOT_DIR}/\${FEATURE_TOOLCHAIN_DIR}/\${TOOLCHAIN_FILE_NAME}")
     else()
         cmake_path(GET CMAKE_CXX_COMPILER FILENAME CXX_COMPILER_EXECUTABLE)
         file(APPEND "\${OUT_FILE}" "CMAKE_CXX_COMPILER= \\"\${CXX_COMPILER_EXECUTABLE}\\"\n")
@@ -290,9 +310,9 @@ createFeatureModuleFunction("bindFeaturesToBuild" ""
         list(REMOVE_ITEM dependencies "\${dependenciesTarget}")
 
         # Intersection by project available architectures and dependencies lists
-        set(differenceList "\${OBJECTIVE_SUPPORTED_PROCESSORS}")
+        set(differenceList "\${FEATURE_AVAILABLE_ARCHS}")
         list(REMOVE_ITEM differenceList \${dependencies})
-        set(dependenciesArch "\${OBJECTIVE_SUPPORTED_PROCESSORS}")
+        set(dependenciesArch "\${FEATURE_AVAILABLE_ARCHS}")
         list(REMOVE_ITEM dependenciesArch \${differenceList})
         set(dependenciesCompiler "\${dependencies}")
         list(REMOVE_ITEM dependenciesCompiler \${dependenciesArch})
