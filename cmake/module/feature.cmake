@@ -46,7 +46,7 @@ createFeatureModuleFunction("featureModuleInitialization" ""
     set_property(GLOBAL PROPERTY CONSERVED_FEATURES "")
 
     # Name of out file
-    set(FEATURE_OUT_FILE "CMakeFeatureOut.txt" CACHE STRING "Features data
+    set(FEATURE_OUT_FILE "CMakeFeaturesDefineEnum.txt" CACHE STRING "Features data
     out filename")
     set(FEATURE_AVAILABLE_FIELDS "NAME;DESCRIPTION;TAGS;HASHCOMMIT;AUTHORSHIP"
     CACHE STRING "Available feature fields")]]
@@ -81,6 +81,7 @@ createFeatureModuleFunction("startFeatureRecording" "target"
         message(SEND_ERROR "\${target} isn't a target. Feature doesn't created.")
     endif()
 
+    # Starting the feature target record from that time
     set_property(
         GLOBAL PROPERTY
             POPULATING_FEATURES \${POPULATING_FEATURES_PROPERTY}
@@ -99,14 +100,16 @@ createFeatureModuleFunction("saveFeatureRecording" ""
             CONSERVED_FEATURES)
     list(LENGTH POPULATING_FEATURES_PROPERTY POPULATING_FEATURES_LENGTH)
 
-    # Divided save feature on three category: nothing to save, cannot to finish
-    # and can finish
+    # Save feature divides on three category: nothing to save, cannot to finish
+    # and can finish the save process
+
     if(POPULATING_FEATURES_LENGTH LESS 1)
         message(WARNING "Nothing feature to save")
     elseif(POPULATING_FEATURES_LENGTH EQUAL 1)
         list(POP_BACK POPULATING_FEATURES_PROPERTY SAVING_FEATURE)
         list(APPEND FEATURES_LIST_PROPERTY \${SAVING_FEATURE})
-        # Finish save process for all features in CONSERVED_FEATURES list
+
+        # Finish the save process for all features in CONSERVED_FEATURES list
         while(NOT "\${CONSERVED_FEATURES_PROPERTY}" STREQUAL "")
             list(POP_BACK CONSERVED_FEATURES_PROPERTY CONSERVED_FEATURE)
 
@@ -130,7 +133,7 @@ createFeatureModuleFunction("saveFeatureRecording" ""
         endwhile()
     elseif(POPULATING_FEATURES_LENGTH GREATER 1)
         list(POP_BACK POPULATING_FEATURES_PROPERTY UNFINISHED_FEATURE)
-        list(APPEND CONSERVED_FEATURES_PROPERTY UNFINISHED_FEATURE)
+        list(APPEND CONSERVED_FEATURES_PROPERTY \${UNFINISHED_FEATURE})
     endif()
 
     set_property(GLOBAL PROPERTY
@@ -174,7 +177,8 @@ createFeatureModuleFunction("setFeatureField" "field;value"
 )
 
 #[[
- # Element in names must be an architecture, compiler or another feature. Would be a list.
+ # Element in names must be an architecture, compiler or another feature.
+ # Would is a list.
  ]]
 createFeatureModuleFunction("setFeatureDependency" "names"
 [[    get_property( POPULATING_FEATURES_PROPERTY GLOBAL PROPERTY POPULATING_FEATURES)
@@ -201,6 +205,8 @@ createFeatureModuleFunction("setFeatureDependency" "names"
                     OR dependency IN_LIST OBJECTIVE_SUPPORTED_PROCESSORS
                 )
                     list(APPEND featdep \${dependency})
+                # Not Target and not architecture treat as compiler,
+                # since the project supported compilers list not set.
                 elseif(
                     NOT TARGET "\${dependency}"
                     AND NOT dependency IN_LIST OBJECTIVE_SUPPORTED_PROCESSORЅ
@@ -270,8 +276,11 @@ createFeatureModuleFunction("bindFeaturesToBuild" ""
     list(FILTER cacheVars INCLUDE REGEX "FEATURE_[A-Za-z0-9\.]+\$")
 
     foreach(feature IN LISTS cacheVars)
+        # Format to target name
         string(REGEX REPLACE "^FEATURE_" "" feature "\${feature}")
-        get_target_property(dependencies \${feature} FEATURE_DEPENDENCIES)
+        get_property(dependencies TARGET \${feature} PROPERTY FEATURE_DEPENDENCIES)
+        # Divide the whole dependencies list by three lists: target,
+        # compiler and architecture dependencies
         set(dependenciesTarget "")
         foreach(elm IN LISTS dependencies)
             if(TARGET "\${elm}")
@@ -280,7 +289,7 @@ createFeatureModuleFunction("bindFeaturesToBuild" ""
         endforeach()
         list(REMOVE_ITEM dependencies "\${dependenciesTarget}")
 
-        # Intersection by architecture and dependencies lists
+        # Intersection by project available architectures and dependencies lists
         set(differenceList "\${OBJECTIVE_SUPPORTED_PROCESSORS}")
         list(REMOVE_ITEM differenceList \${dependencies})
         set(dependenciesArch "\${OBJECTIVE_SUPPORTED_PROCESSORS}")
@@ -288,6 +297,7 @@ createFeatureModuleFunction("bindFeaturesToBuild" ""
         set(dependenciesCompiler "\${dependencies}")
         list(REMOVE_ITEM dependenciesCompiler \${dependenciesArch})
 
+        # If the current toolchain doesn't match target dependencies, send the error
         cmake_path(GET CMAKE_CXX_COMPILER FILENAME COMPILER_NAME)
         if(
             (NOT dependenciesArch STREQUAL ""
