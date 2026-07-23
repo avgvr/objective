@@ -16,11 +16,16 @@
  * ObjectiveOS. If not, see <https://www.gnu.org/licenses/>. 
  ]]
 
-target_sources(CPUID
-    PUBLIC
-        FILE_SET HEADERS
-        BASE_DIRS
-            ${CMAKE_CURRENT_LIST_DIR} 
-        FILES
-            ${CMAKE_CURRENT_LIST_DIR}/Platform.h
-)
+set(IS_CPUID_DEFINES TRUE)
+ifFeatureEnables(CPUID IS_CPUID_DEFINES)
+
+if(IS_CPUID_DEFINES)
+    target_sources(CPUID
+        PUBLIC
+            FILE_SET HEADERS
+            BASE_DIRS
+                ${CMAKE_CURRENT_LIST_DIR} 
+            FILES
+                ${CMAKE_CURRENT_LIST_DIR}/Platform.h
+    )
+endif()

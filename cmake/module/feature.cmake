@@ -42,8 +42,23 @@ macro(createFeatureModuleFunction name args bodyfunc)
 endmacro()
 
 #[[
+# Return TRUE if feature define passed from cmake option, FALSE otherwise
+ # featurename - the name of a feature
+ # result - out argument keeps variable name to propagate
+ ]]
+createFeatureModuleFunction("ifFeatureEnables" "featurename;result"
+[[    if(DEFINED FEATURE_${featurename})
+        set(${result} TRUE)
+    else()
+        set(${result} FALSE)
+    endif()
+
+    return(PROPAGATE ${result})]]
+)
+
+#[[
  # !IMPORTANT! Call before any other function execution and only one time.
- # !IMPORTANT! Incorrect use of this function cause undefined behaviour.
+ # Incorrect use of this function cause undefined behaviour.
  # Filling cache variables related project information.
  ]]
 createFeatureModuleFunction("featureProjectDataAssign"
@@ -65,7 +80,7 @@ createFeatureModuleFunction("featureModuleInitialization" ""
     set_property(GLOBAL PROPERTY CONSERVED_FEATURES "")
 
     # Name of out file
-    set(FEATURE_OUT_FILE "CMakeFeaturesDefineEnum.txt" CACHE STRING "Features data
+    set(FEATURE_OUT_FILE "CMakeFeatures.txt" CACHE STRING "Features data
     out filename")
     set(FEATURE_AVAILABLE_FIELDS "NAME;DESCRIPTION;TAGS;HASHCOMMIT;AUTHORSHIP"
     CACHE STRING "Available feature fields")]]
@@ -122,11 +137,12 @@ createFeatureModuleFunction("saveFeatureRecording" ""
     # Save feature divides on three category: nothing to save, cannot to finish
     # and can finish the save process
 
+    list(POP_BACK POPULATING_FEATURES_PROPERTY PROMISE_SAVE)
+
     if(POPULATING_FEATURES_LENGTH LESS 1)
         message(WARNING "Nothing feature to save")
     elseif(POPULATING_FEATURES_LENGTH EQUAL 1)
-        list(POP_BACK POPULATING_FEATURES_PROPERTY SAVING_FEATURE)
-        list(APPEND FEATURES_LIST_PROPERTY \${SAVING_FEATURE})
+        list(APPEND FEATURES_LIST_PROPERTY \${PROMISE_SAVE})
 
         # Finish the save process for all features in CONSERVED_FEATURES list
         while(NOT "\${CONSERVED_FEATURES_PROPERTY}" STREQUAL "")
@@ -151,8 +167,7 @@ createFeatureModuleFunction("saveFeatureRecording" ""
             list(APPEND FEATURES_LIST_PROPERTY \${CONSERVED_FEATURE})
         endwhile()
     elseif(POPULATING_FEATURES_LENGTH GREATER 1)
-        list(POP_BACK POPULATING_FEATURES_PROPERTY UNFINISHED_FEATURE)
-        list(APPEND CONSERVED_FEATURES_PROPERTY \${UNFINISHED_FEATURE})
+        list(APPEND CONSERVED_FEATURES_PROPERTY \${PROMISE_SAVE})
     endif()
 
     set_property(GLOBAL PROPERTY
@@ -199,7 +214,7 @@ createFeatureModuleFunction("setFeatureField" "field;value"
  # Element in names must be an architecture, compiler or another feature.
  # Would is a list.
  ]]
-createFeatureModuleFunction("setFeatureDependency" "names"
+createFeatureModuleFunction("setFeatureDependencies" "names"
 [[    get_property( POPULATING_FEATURES_PROPERTY GLOBAL PROPERTY POPULATING_FEATURES)
     get_property( CONSERVED_FEATURES_PROPERTY GLOBAL PROPERTY CONSERVED_FEATURES)
     list(POP_BACK POPULATING_FEATURES_PROPERTY RECORDING_FEATURE)
@@ -248,7 +263,7 @@ createFeatureModuleFunction("setFeatureDependency" "names"
 
 #[[
  # Function that push features data into file. Content is like cmake variables.
- # <FEATURE_PROPERTY> = "<VARIABLE>"
+# <FEATURE_PROPERTY> = "<VALUE>"
  ]]
 createFeatureModuleFunction("outFeaturesToFile" ""
 [[    get_directory_property(cacheVars CACHE_VARIABLES)
@@ -260,8 +275,12 @@ createFeatureModuleFunction("outFeaturesToFile" ""
     file(APPEND "\${OUT_FILE}" "# Toolset variables\n")
     if("CMAKE_TOOLCHAIN_FILE" IN_LIST cacheVars AND NOT "\${CMAKE_TOOLCHAIN_FILE}" STREQUAL "")
         cmake_path(GET CMAKE_TOOLCHAIN_FILE FILENAME TOOLCHAIN_FILE_NAME)
-        file(APPEND "\${OUT_FILE}" " -DCMAKE_TOOLCHAIN_FILE="
-        "\${FEATURE_PROJECT_ROOT_DIR}/\${FEATURE_TOOLCHAIN_DIR}/\${TOOLCHAIN_FILE_NAME}")
+        cmake_path(APPEND TOOLCHAIN_PATH
+            "\${FEATURE_PROJECT_ROOT_DIR}"
+            "\${FEATURE_TOOLCHAIN_DIR}"
+            "\${TOOLCHAIN_FILE_NAME}"
+        )
+        file(APPEND "\${OUT_FILE}" " -DCMAKE_TOOLCHAIN_FILE=\${TOOLCHAIN_PATH}")
     else()
         cmake_path(GET CMAKE_CXX_COMPILER FILENAME CXX_COMPILER_EXECUTABLE)
         file(APPEND "\${OUT_FILE}" "CMAKE_CXX_COMPILER= \\"\${CXX_COMPILER_EXECUTABLE}\\"\n")

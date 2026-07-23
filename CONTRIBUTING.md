@@ -62,7 +62,7 @@ differ. `email` branch indent to receive patches from email and used by gerrit
 instance when pushing to review.
 
 ## Sending a patch
-**`<builddir>/CMakeReplication.txt` file must is attached to the commit**
+**`<builddir>/CMakeDexport.txt` file must is attached to the commit**
 
 Before to submit a patch, please read its whole. Make sure there are no unintended changes and fix them.
 Trailing whitespaces, empty commits, test code, bad words and etc. must be deleted.
@@ -132,7 +132,7 @@ Attach the following information:
 - Version of the kernel.
 - Explain the behavior you would expect and the actual behaviour.
 - Exactly what steps did you take to trigger the bug?
-- `<builddir>/CMakeReplication.txt` file content.
+- `<builddir>/CMakeDexport.txt` file content.
 - If possible provide an exact example that demonstrates your problem. This
 could be a code snippet or display content from emulator or something else.
 Create the minimum working example that demonstrates your problem. Remove

@@ -1,0 +1,10 @@
+1.(DONE) Don't create a feature with duplicating name
+    Add checks in create and save feature functions
+
+2.(DONE) Add processing for FEATURES_SUSPEND variable features functions to suspend
+this module variables populating.
+
+3.(DONE) Are Features accord toolchain? Implement this check. Maybe to process a cache cmake
+variable. FEATURES_TIE_BUILD
+
+4. find_package() support for modules, and write documentation.

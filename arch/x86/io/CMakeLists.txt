@@ -16,19 +16,42 @@
  * ObjectiveOS. If not, see <https://www.gnu.org/licenses/>. 
  ]]
 
-add_library(IO STATIC)
-target_link_libraries(IO PUBLIC CXX_COMPILER_REQUIREMENTS)
+set(IS_DISPLAY_DEFINES TRUE)
+ifFeatureEnables(DISPLAY IS_DISPLAY_DEFINES)
 
-target_sources(IO PRIVATE
-    ${CMAKE_CURRENT_LIST_DIR}/VGADisplay.cpp
-)
+if(NOT IS_DISPLAY_DEFINES)
+    add_library(DISPLAY INTERFACE)
+else()
+    target_compile_definitions(CXX_COMPILER_REQUIREMENTS INTERFACE
+        FEATURE_DISPLAY
+    )
 
-target_sources(IO
-    PUBLIC
-        FILE_SET HEADERS
-        FILES
-            ${CMAKE_CURRENT_LIST_DIR}/VGADisplay.h
-            ${CMAKE_CURRENT_LIST_DIR}/VGADisplayInfo.h
-)
+    add_library(DISPLAY STATIC)
+    target_link_libraries(DISPLAY PUBLIC CXX_COMPILER_REQUIREMENTS)
 
-target_link_libraries(Architecture INTERFACE IO)
+    target_sources(DISPLAY PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/VGADisplay.cpp
+    )
+
+    target_sources(DISPLAY
+        PUBLIC
+            FILE_SET HEADERS
+            FILES
+                ${CMAKE_CURRENT_LIST_DIR}/VGADisplay.h
+                ${CMAKE_CURRENT_LIST_DIR}/VGADisplayInfo.h
+    )
+
+    target_link_libraries(Architecture INTERFACE DISPLAY)
+endif()
+
+startFeatureRecording(DISPLAY)
+
+setFeatureField(NAME "VGA driver for x86 processors")
+setFeatureField(HASHCOMMIT "b82ccebd3a0cce28177b5fac046139e2de7737fa")
+setFeatureField(DESCRIPTION "Add ability to write into framebuffer"
+                    "under the x86 processorѕ")
+setFeatureField(TAGS "NEW")
+setFeatureField(AUTHORSHIP "Alexey Gavrilov <alexey.gavrilov@mail.com>")
+setFeatureDependencies(x86)
+
+saveFeatureRecording()

@@ -16,19 +16,41 @@
  * ObjectiveOS. If not, see <https://www.gnu.org/licenses/>. 
  ]]
 
-add_library(IC STATIC)
-target_link_libraries(IC PUBLIC CXX_COMPILER_REQUIREMENTS)
+set(IS_PIC_DEFINES TRUE)
+ifFeatureEnables(PIC IS_PIC_DEFINES)
 
-target_sources(IC PRIVATE
-    ${CMAKE_CURRENT_LIST_DIR}/Pic.cpp
-)
+if(NOT IS_PIC_DEFINES)
+    add_library(PIC INTERFACE)
+else()
+    target_compile_definitions(CXX_COMPILER_REQUIREMENTS INTERFACE
+        FEATURE_PIC
+    )
 
-target_sources(IC
-    PUBLIC
-        FILE_SET HEADERS
-        FILES
-            ${CMAKE_CURRENT_LIST_DIR}/Pic.h
-            ${CMAKE_CURRENT_LIST_DIR}/IPic.h
-)
+    add_library(PIC STATIC)
+    target_link_libraries(PIC PUBLIC CXX_COMPILER_REQUIREMENTS)
 
-target_link_libraries(Architecture INTERFACE IC)
+    target_sources(PIC PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/Pic.cpp
+    )
+
+    target_sources(PIC
+        PUBLIC
+            FILE_SET HEADERS
+            FILES
+                ${CMAKE_CURRENT_LIST_DIR}/Pic.h
+                ${CMAKE_CURRENT_LIST_DIR}/IPic.h
+    )
+
+    target_link_libraries(Architecture INTERFACE PIC)
+endif()
+
+startFeatureRecording(PIC)
+
+setFeatureField(NAME "PIC support")
+setFeatureField(HASHCOMMIT "515a11b818e4140845f69bb26a19d270a9e42178")
+setFeatureField(DESCRIPTION "PIC x86 support")
+setFeatureField(TAGS "NEW")
+setFeatureField(AUTHORSHIP "Alexey Gavrilov <alexey.gavrilov@mail.com>")
+setFeatureDependencies("x86;ACPI")
+
+saveFeaturerecording()

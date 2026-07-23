@@ -59,8 +59,17 @@ list(APPEND CMAKE_MODULE_PATH
 )
 
 include(feature)
+
+# Propagate project information to feature module
+featureProjectDataAssign(
+    "${OBJECTIVE_SUPPORTED_PROCESSORS}"
+    "${ObjectiveProject_SOURCE_DIR}"
+    "${ObjectiveProject_ARCHITECTURE}"
+    "cmake/toolchain"
+)
+
 include(metadata)
-include(runfile)
+include(dexport)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -91,6 +100,7 @@ add_library(ASM_NASM_COMPILER_REQUIREMENTS INTERFACE)
 
 # Target with linker requirements
 add_library(CXX_LINKER_REQUIREMENTS INTERFACE)
+
 target_link_options(CXX_LINKER_REQUIREMENTS INTERFACE
     ${ObjectiveProject_CXX_FLAGS}
 )
@@ -144,4 +154,4 @@ target_link_libraries(Objective PRIVATE
 target_link_libraries(Objective PRIVATE CXX_LINKER_REQUIREMENTS)
 
 outFeaturesToFile()
-writerunfile()
+definesFileExport()
